@@ -1,0 +1,69 @@
+﻿@page "/servicios/editar/{Id:int}"
+@using ClinicaDental.Shared.Models
+@inject HttpClient Http
+@inject NavigationManager Navegar
+
+<h3>Modificar Servicios</h3>
+@if (losServicios != null)
+{
+<EditForm Model="@losServicios" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="col">
+        <div class="row">
+            <p>Introduzca el nombre del servicio:</p>
+            <InputText class="form-control" @bind-Value="losServicios.Nombre"></InputText>
+            <ValidationMessage For="()=>losServicios.Nombre" />
+        </div>
+
+        <div class="row mt-3">
+            <p>Introduzca la fecha en que se realizó el servicio:</p>
+            <InputText class="form-control" @bind-Value="losServicios.Fecha"></InputText>
+            <ValidationMessage For="()=>losServicios.Fecha" />
+        </div>
+
+        <div class="row mt-3">
+            <p>Introduzca el precio del servicio:</p>
+            <InputNumber class="form-control" @bind-Value="losServicios.Precio"></InputNumber>
+            <ValidationMessage For="()=>losServicios.Precio" />
+        </div>
+
+        <div class="row mt-3">
+            <p>Introduzca el nombre del dentista que realizó el servicio:</p>
+            <InputSelectNumber class="form-control" @bind-Value="losServicios.DentistasId" id="dentistas">
+                @foreach (Dentistas elemento in losDentistas)
+                    {
+                    <option value="@elemento.Id">@elemento.NombreDentista</option>
+                    }
+
+            </InputSelectNumber>
+            <ValidationMessage For="@(()=>losServicios.DentistasId)" />
+        </div>
+
+        <div class="row mt-3">
+            <button type="submit" class="btn-danger mb-3">Guardar</button>
+        </div>
+    </div>
+
+</EditForm>
+}
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Servicios losServicios;
+    private List<Dentistas> losDentistas = new List<Dentistas>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        losDentistas = await Http.GetFromJsonAsync<List<Dentistas>>("api/nombredentistas");
+        losServicios = await Http.GetFromJsonAsync<Servicios>($"/api/servicios/{Id}");
+    }
+
+    private async Task Guardar()
+    {
+        await Http.PutAsJsonAsync($"/api/servicios/{losServicios.Id}", losServicios);
+        Navegar.NavigateTo("/servicios");
+    }
+}

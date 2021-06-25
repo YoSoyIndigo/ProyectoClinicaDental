@@ -1,0 +1,113 @@
+﻿@using ClinicaDental.Shared.Models
+@page "/servicios"
+@inject HttpClient Http
+@inject NavigationManager Navegar
+
+<h3>Listado de Servicios</h3>
+<button class="btn btn-success" @onclick="()=>Nuevo()">Nuevo Servicio</button>
+
+@if (losServicios != null)
+{
+    <div class="row mt-3">
+        <div class="col">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Precio</th>
+                        <th scope="col">Nombre del dentista</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var servicios in losServicios)
+                    {
+                        <tr>
+                            <td>@servicios.Id</td>
+                            <td>@servicios.Nombre</td>
+                            <td>@servicios.Fecha</td>
+                            <td>@servicios.Precio</td>
+                            <td>@servicios.Dentistas.NombreDentista</td>
+                            <td>
+                                <button class="btn btn-sm" @onclick="()=> { Modificar(servicios.Id); }"><span class="oi oi-pencil"></span></button>
+                                <button class="btn btn-sm" @onclick="()=> { Eliminar(servicios.Id); }"><span class="oi oi-trash"></span></button>
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (mostrarMensaje)
+{
+    <div class="modal show" tabindex="-1" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Importante</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger" role="alert">
+                        <p>El servicio se eliminará de manera permanente</p>
+                        <p>¿Estás seguto de borrar?</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" @onclick="Borrar">Eliminar</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private List<Servicios> losServicios;
+    private int BorrarId;
+    private bool mostrarMensaje = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        losServicios = await Http.GetFromJsonAsync<List<Servicios>>("/api/servicios");
+    }
+
+    private async Task Cargar()
+    {
+        losServicios = await Http.GetFromJsonAsync<List<Servicios>>("/api/servicios");
+    }
+
+    private void Nuevo()
+    {
+        Navegar.NavigateTo("/servicios/crear");
+    }
+
+    private void Modificar(int id)
+    {
+        Navegar.NavigateTo($"/servicios/editar/{id}");
+    }
+
+    private void Eliminar(int id)
+    {
+        BorrarId = id;
+        mostrarMensaje = true;
+    }
+
+    private async Task Cancelar()
+    {
+        BorrarId = 0;
+        mostrarMensaje = false;
+        await Cargar();
+    }
+
+    private async Task Borrar()
+    {
+        await Http.DeleteAsync($"api/servicios/{BorrarId}");
+        await Cancelar();
+    }
+}

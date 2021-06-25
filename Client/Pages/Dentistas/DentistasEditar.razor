@@ -1,0 +1,42 @@
+﻿@page "/dentistas/editar/{Id:int}"
+@using ClinicaDental.Shared.Models
+@inject HttpClient Http
+@inject NavigationManager Navegar
+
+<h3>Modificar Dentistas</h3>
+@if (losDentistas != null)
+{
+    <EditForm Model="@losDentistas" OnValidSubmit="Guardar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="col">
+            <div class="row">
+                <div class="col ml-0">
+                    <InputText class="form-control" @bind-Value="losDentistas.NombreDentista"></InputText>
+                    <ValidationMessage For="()=>losDentistas.NombreDentista" />
+                </div>
+            </div>
+            <div class="row">
+                <button type="submit" class="btn-warning mt-3">Guardar</button>
+            </div>
+        </div>
+    </EditForm>
+}
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Dentistas losDentistas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        losDentistas = await Http.GetFromJsonAsync<Dentistas>($"/api/nombredentistas/{Id}");
+    }
+
+    private async Task Guardar()
+    {
+        await Http.PutAsJsonAsync($"/api/nombredentistas/{losDentistas.Id}", losDentistas);
+        Navegar.NavigateTo("/dentistas");
+    }
+}
